@@ -209,6 +209,77 @@ def convert_to_pdf(emails: List[Dict[str, Any]], output_path: Path):
     doc.build(story)
 
 
+def convert_to_md(emails: List[Dict[str, Any]], output_path: Path):
+    """
+    Convert emails to Markdown format
+
+    Creates a well-formatted Markdown document with all emails
+    """
+    with open(output_path, 'w', encoding='utf-8') as mdfile:
+        mdfile.write("# Email Export\n\n")
+        mdfile.write(f"**Export Date:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}  \n")
+        mdfile.write(f"**Total Emails:** {len(emails)}\n\n")
+        mdfile.write("---\n\n")
+
+        for idx, email in enumerate(emails, 1):
+            # Email header
+            subject = email.get('subject', '(No Subject)')
+            mdfile.write(f"## Email #{idx}: {_escape_markdown(subject)}\n\n")
+
+            # Metadata table
+            mdfile.write("| Field | Value |\n")
+            mdfile.write("|-------|-------|\n")
+            mdfile.write(f"| **Date** | {_escape_markdown(email.get('date', 'N/A'))} |\n")
+            mdfile.write(f"| **From** | {_escape_markdown(email.get('from', 'N/A'))} |\n")
+            mdfile.write(f"| **To** | {_escape_markdown(email.get('to', 'N/A'))} |\n")
+
+            if email.get('cc'):
+                mdfile.write(f"| **CC** | {_escape_markdown(email.get('cc'))} |\n")
+
+            if email.get('attachments'):
+                attachments_str = ', '.join([f"`{att}`" for att in email.get('attachments')])
+                mdfile.write(f"| **Attachments** | {attachments_str} |\n")
+
+            mdfile.write("\n")
+
+            # Email body
+            mdfile.write("### Message Body\n\n")
+            body = email.get('body', '(No content)')
+
+            # Format body as blockquote or code block depending on content
+            if body:
+                # Escape markdown special characters in body
+                body_escaped = _escape_markdown(body)
+                mdfile.write(f"{body_escaped}\n\n")
+            else:
+                mdfile.write("*(No content)*\n\n")
+
+            mdfile.write("---\n\n")
+
+        mdfile.write(f"\n**End of Export** - {len(emails)} emails processed\n")
+
+
+def _escape_markdown(text: str) -> str:
+    """Escape Markdown special characters"""
+    if not text:
+        return ""
+
+    text = str(text)
+    # Escape markdown special characters
+    text = text.replace('\\', '\\\\')
+    text = text.replace('*', '\\*')
+    text = text.replace('_', '\\_')
+    text = text.replace('[', '\\[')
+    text = text.replace(']', '\\]')
+    text = text.replace('(', '\\(')
+    text = text.replace(')', '\\)')
+    text = text.replace('#', '\\#')
+    text = text.replace('`', '\\`')
+    text = text.replace('|', '\\|')
+
+    return text
+
+
 def _escape_html(text: str) -> str:
     """Escape HTML special characters"""
     if not text:
