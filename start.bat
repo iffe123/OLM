@@ -51,5 +51,8 @@ echo.
 echo Press Ctrl+C to stop the server
 echo.
 
+REM Open browser after delay
+start /b cmd /c "timeout /t 2 /nobreak >nul && start http://localhost:8000"
+
 REM Start the application
 python app.py
