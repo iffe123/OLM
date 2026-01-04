@@ -36,9 +36,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Directories
-UPLOAD_DIR = Path("uploads")
-OUTPUT_DIR = Path("outputs")
+# Directories - Use /tmp for serverless environments
+UPLOAD_DIR = Path("/tmp/uploads")
+OUTPUT_DIR = Path("/tmp/outputs")
 UPLOAD_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
 
@@ -138,8 +138,46 @@ async def process_olm_file(
 @app.get("/", response_class=HTMLResponse)
 async def root():
     """Serve the main HTML page"""
-    with open("static/index.html", "r") as f:
-        return f.read()
+    try:
+        # Try multiple paths for different deployment environments
+        html_paths = [
+            Path("static/index.html"),
+            Path(__file__).parent / "static" / "index.html",
+            Path("/var/task/static/index.html")
+        ]
+
+        for html_path in html_paths:
+            if html_path.exists():
+                with open(html_path, "r") as f:
+                    return f.read()
+
+        # If no HTML file found, return a simple page
+        return """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>OLM File Converter API</title>
+        </head>
+        <body>
+            <h1>OLM File Converter API</h1>
+            <p>API is running. Visit the <a href="/docs">/docs</a> endpoint for API documentation.</p>
+        </body>
+        </html>
+        """
+    except Exception as e:
+        return f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>OLM File Converter API</title>
+        </head>
+        <body>
+            <h1>OLM File Converter API</h1>
+            <p>API is running. Visit the <a href="/docs">/docs</a> endpoint for API documentation.</p>
+            <p><small>Error loading UI: {str(e)}</small></p>
+        </body>
+        </html>
+        """
 
 
 @app.post("/api/upload")
@@ -232,6 +270,9 @@ async def cleanup_task(task_id: str):
 
     return {"message": "Cleanup completed"}
 
+
+# Export app for Vercel
+handler = app
 
 if __name__ == "__main__":
     import uvicorn
