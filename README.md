@@ -1,15 +1,16 @@
 # OLM File Converter
 
-A powerful web-based tool to convert Outlook for Mac (.olm) files into Claude-friendly formats. Extract emails from large OLM archives (up to 10GB) and convert them to CSV, TXT, JSON, or PDF formats.
+A powerful tool to convert Outlook for Mac (.olm) files into Claude-friendly formats. Extract emails from OLM archives and convert them to CSV, TXT, JSON, PDF, or Markdown formats.
 
 ## Features
 
-- **Large File Support**: Handle OLM files up to 10GB
+- **Large File Support**: No size limits when running locally (desktop app)
 - **Multiple Output Formats**:
   - 📊 **CSV** - Perfect for spreadsheet analysis and data processing
   - 📄 **TXT** - Plain text format, ideal for sharing with Claude AI
   - 🔧 **JSON** - Structured data for programming and API integration
   - 📑 **PDF** - Professional document format for archiving
+  - 📝 **MD** - Markdown format, perfect for documentation and Google Drive
 - **Fast Processing**: Chunked file uploads and efficient parsing
 - **Progress Tracking**: Real-time status updates during conversion
 - **User-Friendly Interface**: Drag-and-drop file upload
@@ -17,12 +18,42 @@ A powerful web-based tool to convert Outlook for Mac (.olm) files into Claude-fr
 
 ## Installation
 
+### Option 1: Desktop App (Recommended for Large Files)
+
+Build a standalone executable that runs locally with **no file size limits**:
+
+**Quick Start (requires Python 3.8+):**
+```bash
+# Clone the repository
+git clone <repository-url>
+cd OLM
+
+# Build the desktop app
+python build_app.py
+```
+
+This creates `OLM-Converter` (or `OLM-Converter.exe` on Windows) in the `dist/` folder. Double-click to run - your browser opens automatically!
+
+**Or run directly without building:**
+
+**Windows:** Double-click `start.bat`
+
+**Mac/Linux:**
+```bash
+chmod +x start.sh
+./start.sh
+```
+
+### Option 2: Web Deployment (Vercel)
+
+Deploy to Vercel for web access. Note: Vercel has upload limits (4.5MB free, 100MB Pro). For files larger than this, use the Desktop App option above.
+
 ### Prerequisites
 
 - Python 3.8 or higher
 - pip (Python package manager)
 
-### Setup
+### Manual Setup
 
 1. Clone or download this repository:
 ```bash
@@ -57,10 +88,10 @@ The application will start at `http://localhost:8000`
 
 2. **Upload your OLM file**:
    - Click the upload area or drag & drop your .olm file
-   - Files up to 10GB are supported
+   - No size limit when running locally
 
 3. **Select output formats**:
-   - Choose one or more formats: CSV, TXT, JSON, PDF
+   - Choose one or more formats: CSV, TXT, JSON, PDF, MD
    - Multiple formats can be selected for a single conversion
 
 4. **Click "Convert File"**:
@@ -79,6 +110,7 @@ The converted files are optimized for use with Claude AI:
 - **CSV files**: Upload for data analysis, insights, or to generate reports
 - **JSON files**: Use for structured queries or programmatic access
 - **PDF files**: Share as formatted documents or for archival purposes
+- **MD files**: Upload to Google Drive or use for documentation - perfectly formatted for readability
 
 ## API Endpoints
 
@@ -91,7 +123,7 @@ Content-Type: multipart/form-data
 
 Parameters:
 - file: OLM file
-- formats: Comma-separated list (e.g., "csv,txt,json")
+- formats: Comma-separated list (e.g., "csv,txt,json,md")
 
 Response:
 {
@@ -176,6 +208,12 @@ The converter uses multiple parsing strategies:
 - Professional document layout
 - Each email on separate page
 - Suitable for archiving and sharing
+
+**MD (Markdown) Format**:
+- Clean, readable markdown formatting
+- Email metadata in table format
+- Perfect for Google Drive and documentation
+- Easy to share and collaborate on
 
 ## Configuration
 
@@ -276,10 +314,19 @@ For issues, questions, or contributions, please open an issue on the repository.
 
 ## Changelog
 
+### Version 1.2.0
+- Added standalone desktop app support (PyInstaller)
+- Auto-open browser on start
+- Fixed Vercel deployment configuration
+
+### Version 1.1.0
+- Added Markdown (MD) format support
+- Enhanced documentation
+
 ### Version 1.0.0
 - Initial release
 - Support for CSV, TXT, JSON, and PDF formats
 - Web-based interface
-- Large file handling (up to 10GB)
+- Large file handling
 - Progress tracking
 - Automatic cleanup

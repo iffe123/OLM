@@ -21,7 +21,8 @@ from format_converters import (
     convert_to_csv,
     convert_to_txt,
     convert_to_json,
-    convert_to_pdf
+    convert_to_pdf,
+    convert_to_md
 )
 
 app = FastAPI(title="OLM File Converter", version="1.0.0")
@@ -35,8 +36,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Directories - Use /tmp for Vercel serverless environment
-# /tmp is the only writable directory in Vercel serverless functions
+# Directories - Use /tmp for serverless environments
 UPLOAD_DIR = Path("/tmp/uploads")
 OUTPUT_DIR = Path("/tmp/outputs")
 UPLOAD_DIR.mkdir(exist_ok=True)
@@ -106,6 +106,8 @@ async def process_olm_file(
                 await asyncio.to_thread(convert_to_json, emails, output_path)
             elif fmt == "pdf":
                 await asyncio.to_thread(convert_to_pdf, emails, output_path)
+            elif fmt == "md":
+                await asyncio.to_thread(convert_to_md, emails, output_path)
 
             output_files.append({
                 "format": fmt,
@@ -141,15 +143,45 @@ async def process_olm_file(
 async def root():
     """Serve the main HTML page"""
     try:
-        static_path = Path("static/index.html")
-        if not static_path.exists():
-            # Try absolute path for Vercel deployment
-            static_path = Path(__file__).parent / "static" / "index.html"
+        # Try multiple paths for different deployment environments
+        html_paths = [
+            Path("static/index.html"),
+            Path(__file__).parent / "static" / "index.html",
+            Path("/var/task/static/index.html")
+        ]
 
-        with open(static_path, "r") as f:
-            return f.read()
+        for html_path in html_paths:
+            if html_path.exists():
+                with open(html_path, "r") as f:
+                    return f.read()
+
+        # If no HTML file found, return a simple page
+        return """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>OLM File Converter API</title>
+        </head>
+        <body>
+            <h1>OLM File Converter API</h1>
+            <p>API is running. Visit the <a href="/docs">/docs</a> endpoint for API documentation.</p>
+        </body>
+        </html>
+        """
     except Exception as e:
-        raise HTTPException(500, f"Failed to load index page: {str(e)}")
+        return f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>OLM File Converter API</title>
+        </head>
+        <body>
+            <h1>OLM File Converter API</h1>
+            <p>API is running. Visit the <a href="/docs">/docs</a> endpoint for API documentation.</p>
+            <p><small>Error loading UI: {str(e)}</small></p>
+        </body>
+        </html>
+        """
 
 
 @app.post("/api/upload")
@@ -162,9 +194,26 @@ async def upload_olm(
     Upload OLM file and start conversion
 
     Args:
-        file: OLM file (Note: Vercel has limits - Hobby: 5MB, Pro: 4.5GB)
-        formats: Comma-separated list of output formats (csv,txt,json,pdf)
+        file: OLM file (up to 100MB on Vercel)
+        formats: Comma-separated list of output formats (csv,txt,json,pdf,md)
     """
+    # Validate file
+    if not file.filename.lower().endswith('.olm'):
+        raise HTTPException(400, "Only .olm files are supported")
+
+    # Parse requested formats
+    output_formats = [f.strip().lower() for f in formats.split(",")]
+    valid_formats = {"csv", "txt", "json", "pdf", "md"}
+    output_formats = [f for f in output_formats if f in valid_formats]
+
+    if not output_formats:
+        raise HTTPException(400, "No valid output formats specified")
+
+    # Generate task ID
+    task_id = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    file_path = UPLOAD_DIR / f"{task_id}.olm"
+
+    # Save uploaded file
     try:
         # Ensure directories exist
         UPLOAD_DIR.mkdir(exist_ok=True)
@@ -268,7 +317,7 @@ async def download_file(task_id: str, format: str):
 async def cleanup_task(task_id: str):
     """Clean up task files"""
     # Remove output files
-    for ext in ["csv", "txt", "json", "pdf"]:
+    for ext in ["csv", "txt", "json", "pdf", "md"]:
         file_path = OUTPUT_DIR / f"{task_id}.{ext}"
         if file_path.exists():
             file_path.unlink()

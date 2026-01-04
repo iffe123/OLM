@@ -2,23 +2,31 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/index.py",
-      "use": "@vercel/python"
-    }
-  ],
-  "routes": [
+      "src": "app.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "50mb"
+      }
+    },
     {
-      "src": "/(.*)",
-      "dest": "api/index.py"
+      "src": "static/**",
+      "use": "@vercel/static"
     }
   ],
   "functions": {
-    "api/index.py": {
-      "maxDuration": 60,
-      "memory": 3008
+    "app.py": {
+      "maxDuration": 300,
+      "memory": 1024
     }
   },
-  "env": {
-    "PYTHONUNBUFFERED": "1"
-  }
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "app.py"
+    }
+  ]
 }
