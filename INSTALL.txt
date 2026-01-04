@@ -1,0 +1,53 @@
+=====================================
+   OLM FILE CONVERTER - QUICK START
+=====================================
+
+STEP 1: INSTALL PYTHON (if you don't have it)
+----------------------------------------------
+Download Python from: https://www.python.org/downloads/
+
+   *** IMPORTANT FOR WINDOWS USERS ***
+   During installation, CHECK THE BOX that says:
+   "Add Python to PATH"
+
+
+STEP 2: RUN THE APP
+-------------------
+
+WINDOWS:
+   Double-click:  start.bat
+
+MAC:
+   Double-click:  start.command
+
+   First time on Mac? You may need to:
+   1. Right-click the file
+   2. Select "Open"
+   3. Click "Open" in the popup
+
+LINUX:
+   Double-click:  start.sh
+
+   Or in terminal:  ./start.sh
+
+
+STEP 3: USE THE APP
+-------------------
+1. Your web browser will open automatically
+2. If not, go to: http://localhost:8000
+3. Drag and drop your .olm file
+4. Select output formats (CSV, TXT, JSON, PDF, MD)
+5. Click "Convert File"
+6. Download your converted files!
+
+
+TROUBLESHOOTING
+---------------
+- "Python not found": Make sure Python is installed and added to PATH
+- Browser doesn't open: Manually go to http://localhost:8000
+- App won't start: Try running from terminal/command prompt to see errors
+
+
+NEED HELP?
+----------
+Open an issue on the repository or check the README.md for more details.

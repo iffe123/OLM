@@ -1,58 +1,57 @@
 @echo off
-REM OLM File Converter - Start Script for Windows
-
-echo ================================
-echo OLM File Converter - Starting...
-echo ================================
+title OLM File Converter
+echo ============================================
+echo        OLM File Converter
+echo ============================================
 echo.
 
-REM Check if Python is installed
+:: Check if Python is installed
 python --version >nul 2>&1
 if errorlevel 1 (
-    echo Error: Python is not installed.
-    echo Please install Python 3.8 or higher.
+    echo ERROR: Python is not installed!
+    echo.
+    echo Please download and install Python from:
+    echo https://www.python.org/downloads/
+    echo.
+    echo IMPORTANT: During installation, check the box that says
+    echo "Add Python to PATH"
+    echo.
     pause
     exit /b 1
 )
 
-echo Python version:
-python --version
+echo [1/3] Checking Python... OK
 echo.
 
-REM Check if virtual environment exists
-if not exist "venv\" (
-    echo Creating virtual environment...
+:: Create virtual environment if it doesn't exist
+if not exist "venv" (
+    echo [2/3] Setting up for first time use...
+    echo       This may take a minute...
     python -m venv venv
-    echo.
+    call venv\Scripts\activate.bat
+    pip install -r requirements.txt --quiet
+) else (
+    echo [2/3] Loading application...
+    call venv\Scripts\activate.bat
 )
 
-REM Activate virtual environment
-echo Activating virtual environment...
-call venv\Scripts\activate.bat
+echo.
+echo [3/3] Starting OLM File Converter...
+echo.
+echo ============================================
+echo   The app is now running!
+echo
+echo   Open your browser to: http://localhost:8000
+echo
+echo   To stop the app, close this window
+echo   or press Ctrl+C
+echo ============================================
 echo.
 
-REM Install/update requirements
-echo Installing dependencies...
-pip install -q -r requirements.txt
-echo Dependencies installed successfully!
-echo.
+:: Open browser after a short delay
+start "" "http://localhost:8000"
 
-REM Create necessary directories
-if not exist "uploads\" mkdir uploads
-if not exist "outputs\" mkdir outputs
-
-echo ================================
-echo Starting OLM File Converter...
-echo ================================
-echo.
-echo Server will be available at:
-echo   http://localhost:8000
-echo.
-echo Press Ctrl+C to stop the server
-echo.
-
-REM Open browser after delay
-start /b cmd /c "timeout /t 2 /nobreak >nul && start http://localhost:8000"
-
-REM Start the application
+:: Run the app
 python app.py
+
+pause
