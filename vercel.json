@@ -21,13 +21,6 @@
   },
   "routes": [
     {
-      "src": "/api/upload",
-      "dest": "app.py",
-      "headers": {
-        "x-vercel-max-body-length": "104857600"
-      }
-    },
-    {
       "src": "/static/(.*)",
       "dest": "/static/$1"
     },
