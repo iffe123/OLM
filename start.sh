@@ -49,5 +49,8 @@ echo ""
 echo "Press Ctrl+C to stop the server"
 echo ""
 
+# Open browser after delay (in background)
+(sleep 2 && python -m webbrowser "http://localhost:8000") &
+
 # Start the application
 python app.py
