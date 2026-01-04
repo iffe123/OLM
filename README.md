@@ -10,6 +10,7 @@ A powerful web-based tool to convert Outlook for Mac (.olm) files into Claude-fr
   - 📄 **TXT** - Plain text format, ideal for sharing with Claude AI
   - 🔧 **JSON** - Structured data for programming and API integration
   - 📑 **PDF** - Professional document format for archiving
+  - 📝 **MD** - Markdown format, perfect for documentation and Google Drive
 - **Fast Processing**: Chunked file uploads and efficient parsing
 - **Progress Tracking**: Real-time status updates during conversion
 - **User-Friendly Interface**: Drag-and-drop file upload
@@ -60,7 +61,7 @@ The application will start at `http://localhost:8000`
    - Files up to 10GB are supported
 
 3. **Select output formats**:
-   - Choose one or more formats: CSV, TXT, JSON, PDF
+   - Choose one or more formats: CSV, TXT, JSON, PDF, MD
    - Multiple formats can be selected for a single conversion
 
 4. **Click "Convert File"**:
@@ -79,6 +80,7 @@ The converted files are optimized for use with Claude AI:
 - **CSV files**: Upload for data analysis, insights, or to generate reports
 - **JSON files**: Use for structured queries or programmatic access
 - **PDF files**: Share as formatted documents or for archival purposes
+- **MD files**: Upload to Google Drive or use for documentation - perfectly formatted for readability
 
 ## API Endpoints
 
@@ -91,7 +93,7 @@ Content-Type: multipart/form-data
 
 Parameters:
 - file: OLM file
-- formats: Comma-separated list (e.g., "csv,txt,json")
+- formats: Comma-separated list (e.g., "csv,txt,json,md")
 
 Response:
 {
@@ -176,6 +178,12 @@ The converter uses multiple parsing strategies:
 - Professional document layout
 - Each email on separate page
 - Suitable for archiving and sharing
+
+**MD (Markdown) Format**:
+- Clean, readable markdown formatting
+- Email metadata in table format
+- Perfect for Google Drive and documentation
+- Easy to share and collaborate on
 
 ## Configuration
 
@@ -275,6 +283,10 @@ This project is open source and available for personal and commercial use.
 For issues, questions, or contributions, please open an issue on the repository.
 
 ## Changelog
+
+### Version 1.1.0
+- Added Markdown (MD) format support
+- Enhanced documentation
 
 ### Version 1.0.0
 - Initial release

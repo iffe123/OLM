@@ -21,7 +21,8 @@ from format_converters import (
     convert_to_csv,
     convert_to_txt,
     convert_to_json,
-    convert_to_pdf
+    convert_to_pdf,
+    convert_to_md
 )
 
 app = FastAPI(title="OLM File Converter", version="1.0.0")
@@ -101,6 +102,8 @@ async def process_olm_file(
                 await asyncio.to_thread(convert_to_json, emails, output_path)
             elif fmt == "pdf":
                 await asyncio.to_thread(convert_to_pdf, emails, output_path)
+            elif fmt == "md":
+                await asyncio.to_thread(convert_to_md, emails, output_path)
 
             output_files.append({
                 "format": fmt,
@@ -150,7 +153,7 @@ async def upload_olm(
 
     Args:
         file: OLM file (up to 10GB)
-        formats: Comma-separated list of output formats (csv,txt,json,pdf)
+        formats: Comma-separated list of output formats (csv,txt,json,pdf,md)
     """
     # Validate file
     if not file.filename.lower().endswith('.olm'):
@@ -158,7 +161,7 @@ async def upload_olm(
 
     # Parse requested formats
     output_formats = [f.strip().lower() for f in formats.split(",")]
-    valid_formats = {"csv", "txt", "json", "pdf"}
+    valid_formats = {"csv", "txt", "json", "pdf", "md"}
     output_formats = [f for f in output_formats if f in valid_formats]
 
     if not output_formats:
@@ -218,7 +221,7 @@ async def download_file(task_id: str, format: str):
 async def cleanup_task(task_id: str):
     """Clean up task files"""
     # Remove output files
-    for ext in ["csv", "txt", "json", "pdf"]:
+    for ext in ["csv", "txt", "json", "pdf", "md"]:
         file_path = OUTPUT_DIR / f"{task_id}.{ext}"
         if file_path.exists():
             file_path.unlink()

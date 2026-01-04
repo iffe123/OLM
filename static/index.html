@@ -350,6 +350,10 @@
                     <input type="checkbox" id="pdfFormat">
                     <label for="pdfFormat">📑 PDF</label>
                 </div>
+                <div class="format-option">
+                    <input type="checkbox" id="mdFormat" checked>
+                    <label for="mdFormat">📝 MD</label>
+                </div>
             </div>
         </div>
 
@@ -377,6 +381,7 @@
                 <li><strong>TXT:</strong> Plain text - easy to read and share with Claude</li>
                 <li><strong>JSON:</strong> Structured data - great for programming</li>
                 <li><strong>PDF:</strong> Document format - readable and professional</li>
+                <li><strong>MD:</strong> Markdown format - perfect for documentation and Google Drive</li>
             </ul>
         </div>
     </div>
@@ -461,6 +466,7 @@
             if (document.getElementById('txtFormat').checked) formats.push('txt');
             if (document.getElementById('jsonFormat').checked) formats.push('json');
             if (document.getElementById('pdfFormat').checked) formats.push('pdf');
+            if (document.getElementById('mdFormat').checked) formats.push('md');
             return formats;
         }
 
@@ -567,7 +573,8 @@
                 'csv': '📊',
                 'txt': '📄',
                 'json': '🔧',
-                'pdf': '📑'
+                'pdf': '📑',
+                'md': '📝'
             };
             return icons[format] || '📄';
         }
