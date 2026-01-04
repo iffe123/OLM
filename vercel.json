@@ -3,14 +3,30 @@
   "builds": [
     {
       "src": "app.py",
-      "use": "@vercel/python"
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "50mb"
+      }
     },
     {
       "src": "static/**",
       "use": "@vercel/static"
     }
   ],
+  "functions": {
+    "app.py": {
+      "maxDuration": 300,
+      "memory": 1024
+    }
+  },
   "routes": [
+    {
+      "src": "/api/upload",
+      "dest": "app.py",
+      "headers": {
+        "x-vercel-max-body-length": "104857600"
+      }
+    },
     {
       "src": "/static/(.*)",
       "dest": "/static/$1"

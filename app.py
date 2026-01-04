@@ -190,7 +190,7 @@ async def upload_olm(
     Upload OLM file and start conversion
 
     Args:
-        file: OLM file (up to 10GB)
+        file: OLM file (up to 100MB on Vercel)
         formats: Comma-separated list of output formats (csv,txt,json,pdf,md)
     """
     # Validate file
