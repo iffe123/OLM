@@ -64,6 +64,10 @@ async def process_olm_file(
 ):
     """Process OLM file and convert to requested formats"""
     try:
+        # Ensure directories exist
+        UPLOAD_DIR.mkdir(exist_ok=True)
+        OUTPUT_DIR.mkdir(exist_ok=True)
+
         conversion_status[task_id] = {
             "status": "processing",
             "progress": 0,
@@ -211,24 +215,73 @@ async def upload_olm(
 
     # Save uploaded file
     try:
-        with open(file_path, "wb") as buffer:
-            # Read in chunks for large files
-            while chunk := await file.read(1024 * 1024 * 10):  # 10MB chunks
-                buffer.write(chunk)
+        # Ensure directories exist
+        UPLOAD_DIR.mkdir(exist_ok=True)
+        OUTPUT_DIR.mkdir(exist_ok=True)
+
+        # Validate file
+        if not file.filename:
+            raise HTTPException(400, "No file provided")
+
+        if not file.filename.lower().endswith('.olm'):
+            raise HTTPException(400, "Only .olm files are supported")
+
+        # Parse requested formats
+        output_formats = [f.strip().lower() for f in formats.split(",")]
+        valid_formats = {"csv", "txt", "json", "pdf"}
+        output_formats = [f for f in output_formats if f in valid_formats]
+
+        if not output_formats:
+            raise HTTPException(400, "No valid output formats specified")
+
+        # Generate task ID
+        task_id = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        file_path = UPLOAD_DIR / f"{task_id}.olm"
+
+        # Save uploaded file with size tracking
+        try:
+            total_size = 0
+            # Vercel Pro limit is 4.5GB, but we should limit smaller for safety
+            max_size = 100 * 1024 * 1024  # 100MB limit to prevent timeouts
+
+            with open(file_path, "wb") as buffer:
+                # Read in chunks for large files
+                while chunk := await file.read(1024 * 1024 * 10):  # 10MB chunks
+                    total_size += len(chunk)
+                    if total_size > max_size:
+                        buffer.close()
+                        if file_path.exists():
+                            file_path.unlink()
+                        raise HTTPException(
+                            413,
+                            f"File too large. Maximum size is {max_size // (1024*1024)}MB for serverless processing. "
+                            "For larger files, consider running this application locally."
+                        )
+                    buffer.write(chunk)
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            if file_path.exists():
+                file_path.unlink()
+            raise HTTPException(500, f"Failed to save file: {str(e)}")
+
+        # Start background processing
+        background_tasks.add_task(process_olm_file, file_path, task_id, output_formats)
+
+        # Cleanup old files
+        background_tasks.add_task(cleanup_old_files)
+
+        return {
+            "task_id": task_id,
+            "message": "File uploaded successfully. Processing started.",
+            "formats": output_formats
+        }
+
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(500, f"Failed to save file: {str(e)}")
-
-    # Start background processing
-    background_tasks.add_task(process_olm_file, file_path, task_id, output_formats)
-
-    # Cleanup old files
-    background_tasks.add_task(cleanup_old_files)
-
-    return {
-        "task_id": task_id,
-        "message": "File uploaded successfully. Processing started.",
-        "formats": output_formats
-    }
+        raise HTTPException(500, f"Unexpected error: {str(e)}")
 
 
 @app.get("/api/status/{task_id}")
@@ -243,16 +296,21 @@ async def get_status(task_id: str):
 @app.get("/api/download/{task_id}/{format}")
 async def download_file(task_id: str, format: str):
     """Download converted file"""
-    file_path = OUTPUT_DIR / f"{task_id}.{format}"
+    try:
+        file_path = OUTPUT_DIR / f"{task_id}.{format}"
 
-    if not file_path.exists():
-        raise HTTPException(404, "File not found")
+        if not file_path.exists():
+            raise HTTPException(404, "File not found or has been cleaned up")
 
-    return FileResponse(
-        path=file_path,
-        filename=f"converted_emails.{format}",
-        media_type="application/octet-stream"
-    )
+        return FileResponse(
+            path=file_path,
+            filename=f"converted_emails.{format}",
+            media_type="application/octet-stream"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f"Failed to download file: {str(e)}")
 
 
 @app.delete("/api/cleanup/{task_id}")
